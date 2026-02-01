@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إكمال البروفايل | DZ-TRAFFIC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-96">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">إعداد حسابك 🛠️</h2>
+        
+        <form id="profileForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium">اسم المستخدم (Username):</label>
+                <input type="text" id="username" class="w-full p-2 border rounded mt-1" placeholder="مثال: ahmed_2026" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">الاسم الكامل:</label>
+                <input type="text" id="full_name" class="w-full p-2 border rounded mt-1" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">رقم الهاتف (الجزائر):</label>
+                <input type="tel" id="phone" class="w-full p-2 border rounded mt-1" placeholder="06XXXXXXXX" required>
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">حفظ والذهاب للمهام 🚀</button>
+        </form>
+    </div>
+</body>
+</html>
