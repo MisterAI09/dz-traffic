@@ -10,149 +10,98 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
         body { font-family: 'Cairo', sans-serif; }
-        .timer-glow { animation: glow 1.5s infinite; }
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
-            100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-        }
     </style>
 </head>
-<body class="bg-slate-50">
-
-    <nav class="bg-white border-b sticky top-0 z-50 px-4 py-3">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="bg-blue-600 text-white p-2 rounded-lg"><i class="fas fa-traffic-light"></i></span>
-                <span class="font-black text-xl text-slate-800">DZ-TRAFFIC</span>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="font-bold text-xl text-blue-600">DZ-TRAFFIC</div>
+        <div class="flex items-center gap-4">
+            <div id="activeTimer" class="hidden bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-sm font-bold animate-pulse">
+                انتظر <span id="seconds">0</span>ثا... ⏳
             </div>
-            
-            <div class="flex items-center gap-3">
-                <div id="activeTimer" class="hidden bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-sm font-bold animate-pulse">
-                    انتظر <span id="seconds">0</span>ثا... ⏳
-                </div>
-                <div class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full border border-amber-200 font-bold flex items-center gap-2">
-                    <span id="userPoints">0</span>
-                    <i class="fas fa-coins text-amber-500"></i>
-                </div>
+            <div class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full font-bold">
+                رصيدك: <span id="userPoints">0</span> 🪙
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto p-4 mt-6">
+    <div class="max-w-4xl mx-auto p-6">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold">المهام المتاحة 🔥</h2>
+            <a href="withdraw.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700 transition">سحب الأرباح 💸</a>
+        </div>
         
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-                <h1 class="text-2xl font-black text-slate-800">تصفح الإعلانات واجمع النقاط 💰</h1>
-                <p class="text-slate-500">كلما شاهدت أكثر، ربحت فليكسي أسرع!</p>
+        <div id="adsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             </div>
-            <a href="withdraw.html" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-green-100 transition-all">
-                <i class="fas fa-mobile-alt"></i>
-                سحب فليكسي
-            </a>
-        </div>
-
-        <div id="adsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <div class="animate-pulse bg-white p-6 rounded-2xl h-40 border border-slate-100"></div>
-            <div class="animate-pulse bg-white p-6 rounded-2xl h-40 border border-slate-100"></div>
-            <div class="animate-pulse bg-white p-6 rounded-2xl h-40 border border-slate-100"></div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        // إعدادات Supabase
         const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
-        const SUPABASE_KEY = "ضعه_هنا_مفتاح_ANON"; // تأكد من وضع المفتاح الصحيح هنا
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_KEY = "ضعه_هنا_من_إعدادات_API_Keys"; // استخدم Anon Key
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let runningTask = false;
+        let isTaskActive = false;
 
         async function init() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) {
-                window.location.href = "index.html";
-                return;
-            }
-            updatePointsUI();
-            fetchAds();
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) { window.location.href = "index.html"; return; }
+            updateUI();
+            loadAds();
         }
 
-        async function updatePointsUI() {
-            const { data: { user } } = await _supabase.auth.getUser();
-            const { data: profile } = await _supabase.from('profiles').select('points').eq('id', user.id).single();
-            document.getElementById('userPoints').innerText = profile?.points?.toLocaleString() || 0;
+        async function updateUI() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const { data: profile } = await supabaseClient.from('profiles').select('points').eq('id', user.id).single();
+            document.getElementById('userPoints').innerText = profile?.points || 0;
         }
 
-        async function fetchAds() {
-            const { data: ads, error } = await _supabase.from('ads').select('*').order('type', { ascending: false });
+        async function loadAds() {
+            const { data: ads } = await supabaseClient.from('ads').select('*').order('type', { ascending: false });
             const container = document.getElementById('adsContainer');
             container.innerHTML = '';
-
-            if (error) {
-                container.innerHTML = '<p class="text-red-500">حدث خطأ أثناء تحميل الإعلانات.</p>';
-                return;
-            }
-
+            
             ads.forEach(ad => {
                 const isVIP = ad.type === 'VIP';
-                const card = `
-                    <div class="bg-white p-6 rounded-2xl border-2 transition-all hover:shadow-xl ${isVIP ? 'border-amber-400 bg-amber-50/30' : 'border-white'}">
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="bg-blue-100 text-blue-600 text-[10px] font-bold px-2 py-1 rounded uppercase">
-                                ${ad.type}
-                            </span>
-                            <span class="text-slate-400 text-xs"><i class="far fa-clock ml-1"></i>${ad.required_time} ثانية</span>
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-xl shadow-sm border-r-4 ${isVIP ? 'border-orange-500' : 'border-blue-500'} flex justify-between items-center transition-transform hover:scale-[1.02]">
+                        <div>
+                            <h3 class="font-bold text-lg">${ad.title} ${isVIP ? '⭐' : ''}</h3>
+                            <p class="text-sm text-gray-500 italic">المطلوب: ${ad.required_time} ثانية</p>
                         </div>
-                        <h3 class="font-bold text-slate-800 text-lg mb-4 line-clamp-1">${ad.title}</h3>
                         <button onclick="startTask('${ad.url}', ${ad.reward_points}, ${ad.required_time})" 
-                                class="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all 
-                                ${isVIP ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white'}">
-                            <span>اربح ${ad.reward_points}</span>
-                            <i class="fas fa-coins text-amber-300"></i>
+                                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
+                            + ${ad.reward_points} نقطة
                         </button>
-                    </div>
-                `;
-                container.innerHTML += card;
+                    </div>`;
             });
         }
 
-        async function startTask(url, reward, seconds) {
-            if (runningTask) return alert("أنهِ المهمة الحالية أولاً!");
-
-            const { data: { user } } = await _supabase.auth.getUser();
-            runningTask = true;
+        async function startTask(url, points, time) {
+            if (isTaskActive) return alert("هناك مهمة جارية!");
             
-            // إظهار العداد
+            isTaskActive = true;
             const timerDiv = document.getElementById('activeTimer');
             const secondsSpan = document.getElementById('seconds');
             timerDiv.classList.remove('hidden');
             
-            let timeLeft = seconds;
+            let timeLeft = time;
             secondsSpan.innerText = timeLeft;
+            window.open(url, '_blank');
 
-            // فتح الموقع
-            const adWin = window.open(url, '_blank');
-
-            const interval = setInterval(async () => {
+            const countdown = setInterval(async () => {
                 timeLeft--;
                 secondsSpan.innerText = timeLeft;
-
                 if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    runningTask = false;
+                    clearInterval(countdown);
                     timerDiv.classList.add('hidden');
-
-                    // إضافة النقاط عبر SQL Function
-                    const { error } = await _supabase.rpc('increment_points', { 
-                        user_id: user.id, 
-                        amount: reward 
-                    });
-
+                    isTaskActive = false;
+                    
+                    const { data: { user } } = await supabaseClient.auth.getUser();
+                    const { error } = await supabaseClient.rpc('increment_points', { user_id: user.id, amount: points });
+                    
                     if (!error) {
-                        alert(`🎁 مبروك! لقد ربحت ${reward} نقطة.`);
-                        updatePointsUI();
-                    } else {
-                        alert("عذراً، فشل إضافة النقاط.");
+                        alert(`مبروك! ربحت ${points} نقطة`);
+                        updateUI();
                     }
                 }
             }, 1000);
