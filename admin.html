@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة المدير | DZ-TRAFFIC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-5xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">طلبات السحب المعلقة 📥</h1>
+        
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+            <table class="w-full text-right text-gray-700">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="p-4">المستخدم</th>
+                        <th class="p-4">رقم الهاتف</th>
+                        <th class="p-4">المبلغ</th>
+                        <th class="p-4">التاريخ</th>
+                        <th class="p-4">الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsTable">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const supabase = supabase.createClient("https://nbioqaxgjzpyrbcwdkds.supabase.co", "ضع_مفتاح_ANON_هنا");
+
+        async function loadRequests() {
+            const { data: requests, error } = await supabase
+                .from('withdrawals')
+                .select('*')
+                .eq('status', 'قيد المراجعة')
+                .order('created_at', { ascending: false });
+
+            const table = document.getElementById('requestsTable');
+            table.innerHTML = '';
+
+            requests.forEach(req => {
+                table.innerHTML += `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-4 text-xs font-mono">${req.user_id}</td>
+                        <td class="p-4 font-bold text-blue-600">${req.phone_number}</td>
+                        <td class="p-4">${req.amount_da} دج</td>
+                        <td class="p-4 text-sm text-gray-400">${new Date(req.created_at).toLocaleString('ar-DZ')}</td>
+                        <td class="p-4">
+                            <button onclick="approve('${req.id}')" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">تم الدفع ✅</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function approve(id) {
+            if(confirm("هل قمت بشحن الرصيد فعلاً؟")) {
+                const { error } = await supabase.from('withdrawals').update({ status: 'تم الدفع' }).eq('id', id);
+                if (!error) loadRequests();
+            }
+        }
+
+        loadRequests();
+    </script>
+</body>
+</html>
