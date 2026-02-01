@@ -6,123 +6,146 @@
     <title>سحب الأرباح | DZ-TRAFFIC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+    </style>
 </head>
 <body class="bg-gray-50">
-    <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
-        <a href="dashboard.html" class="text-blue-600 font-bold flex items-center gap-1">
-            <span>➡️</span> العودة للمهام
+
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-50">
+        <a href="dashboard.html" class="text-blue-600 font-bold flex items-center gap-2">
+            <i class="fas fa-arrow-right"></i> العودة للمهام
         </a>
         <div class="bg-green-100 text-green-800 px-4 py-1 rounded-full font-bold">
             رصيدك: <span id="currentPoints">0</span> 🪙
         </div>
     </nav>
 
-    <div class="max-w-md mx-auto p-6 mt-10">
-        <div class="text-center mb-8">
-            <h2 class="text-3xl font-extrabold text-gray-900">سحب الأرباح 💸</h2>
-            <p class="text-gray-500 mt-2">حول نقاطك إلى رصيد هاتف (فليكسي)</p>
+    <div class="max-w-md mx-auto p-6 mt-8">
+        <div class="text-center mb-10">
+            <div class="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-lg">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <h2 class="text-2xl font-black text-gray-800">تحويل النقاط إلى فليكسي</h2>
+            <p class="text-gray-500 text-sm">اختر المبلغ وأدخل رقم هاتفك ليصلك الرصيد</p>
         </div>
-        
-        <div class="grid gap-4">
-            <div onclick="selectOffer(100, 1000)" id="offer-100" class="offer-card bg-white p-5 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all">
+
+        <div class="space-y-4">
+            <div onclick="selectAmount(100, 1000)" class="offer-card group bg-white p-5 rounded-2xl border-2 border-transparent hover:border-blue-500 shadow-sm cursor-pointer transition-all">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h3 class="text-xl font-bold text-gray-800">100 دج</h3>
-                        <p class="text-sm text-gray-500">Mobilis / Djezzy / Ooredoo</p>
+                        <span class="block text-xl font-bold text-gray-800">100 دج</span>
+                        <span class="text-xs text-gray-400">فليكسي (جميع الشبكات)</span>
                     </div>
-                    <div class="text-blue-600 font-black text-lg">1000 نقطة</div>
+                    <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        1000 نقطة
+                    </div>
                 </div>
             </div>
 
-            <div onclick="selectOffer(200, 2000)" id="offer-200" class="offer-card bg-white p-5 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all">
+            <div onclick="selectAmount(200, 2000)" class="offer-card group bg-white p-5 rounded-2xl border-2 border-transparent hover:border-blue-500 shadow-sm cursor-pointer transition-all">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h3 class="text-xl font-bold text-gray-800">200 دج</h3>
-                        <p class="text-sm text-gray-500">Mobilis / Djezzy / Ooredoo</p>
+                        <span class="block text-xl font-bold text-gray-800">200 دج</span>
+                        <span class="text-xs text-gray-400">فليكسي (جميع الشبكات)</span>
                     </div>
-                    <div class="text-blue-600 font-black text-lg">2000 نقطة</div>
+                    <div class="bg-blue-50 text-blue-600 px-3 py-1 rounded-lg font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        2000 نقطة
+                    </div>
                 </div>
             </div>
         </div>
 
-        <form id="withdrawForm" class="mt-10 space-y-4 hidden animate-fade-in">
-            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <p class="text-blue-800 text-sm text-center font-medium">
-                    سيتم خصم <span id="displayPoints" class="font-bold">0</span> نقطة مقابل <span id="displayDA" class="font-bold">0</span> دج
+        <form id="withdrawForm" class="mt-10 space-y-4 hidden animate-in slide-in-from-bottom-4 duration-500">
+            <input type="hidden" id="selectedDA">
+            <input type="hidden" id="selectedPoints">
+            
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6">
+                <p class="text-blue-800 text-sm font-bold text-center">
+                    سيتم سحب <span id="viewPoints">0</span> نقطة مقابل <span id="viewDA">0</span> دج
                 </p>
             </div>
-            
-            <input type="hidden" id="amountDA">
-            <input type="hidden" id="pointsCost">
 
             <div>
-                <label class="block text-sm font-bold text-gray-700 mb-1">رقم الهاتف المستلم:</label>
-                <input type="tel" id="userPhone" placeholder="06XXXXXXXX / 07XXXXXXXX" 
+                <label class="block text-sm font-bold text-gray-700 mb-2">رقم الهاتف المستلم:</label>
+                <input type="tel" id="phoneNumber" placeholder="06XXXXXXXX / 07XXXXXXXX" 
                        class="w-full p-4 border-2 rounded-xl focus:border-blue-500 outline-none transition" required>
             </div>
-            
-            <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700 transition transform active:scale-95">
+
+            <button type="submit" id="submitBtn" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700 transition transform active:scale-95">
                 تأكيد طلب السحب 🚀
             </button>
         </form>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co";
-        const SUPABASE_KEY = "ضع_مفتاح_ANON_هنا"; 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
+        const SUPABASE_KEY = "ضعه_هنا_من_إعدادات_API_Keys"; 
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function init() {
-            const { data: { user } } = await supabase.auth.getUser();
+        async function loadProfile() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) { window.location.href = "index.html"; return; }
             
-            const { data: profile } = await supabase.from('profiles').select('points').eq('id', user.id).single();
-            document.getElementById('currentPoints').innerText = profile?.points || 0;
+            const { data: profile } = await supabaseClient.from('profiles').select('points').eq('id', user.id).single();
+            document.getElementById('currentPoints').innerText = profile?.points?.toLocaleString() || 0;
         }
 
-        function selectOffer(da, points) {
+        function selectAmount(da, pts) {
             document.querySelectorAll('.offer-card').forEach(c => c.classList.remove('border-blue-500', 'bg-blue-50'));
             event.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
             
-            document.getElementById('amountDA').value = da;
-            document.getElementById('pointsCost').value = points;
-            document.getElementById('displayDA').innerText = da;
-            document.getElementById('displayPoints').innerText = points;
+            document.getElementById('selectedDA').value = da;
+            document.getElementById('selectedPoints').value = pts;
+            document.getElementById('viewDA').innerText = da;
+            document.getElementById('viewPoints').innerText = pts;
             document.getElementById('withdrawForm').classList.remove('hidden');
         }
 
         document.getElementById('withdrawForm').onsubmit = async (e) => {
             e.preventDefault();
-            const { data: { user } } = await supabase.auth.getUser();
-            const da = parseInt(document.getElementById('amountDA').value);
-            const pts = parseInt(document.getElementById('pointsCost').value);
-            const phone = document.getElementById('userPhone').value;
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "جاري الإرسال...";
 
-            // التأكد من الرصيد مرة أخرى
-            const { data: profile } = await supabase.from('profiles').select('points').eq('id', user.id).single();
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            const da = parseInt(document.getElementById('selectedDA').value);
+            const pts = parseInt(document.getElementById('selectedPoints').value);
+            const phone = document.getElementById('phoneNumber').value;
+
+            // 1. التأكد من الرصيد الكافي
+            const { data: profile } = await supabaseClient.from('profiles').select('points').eq('id', user.id).single();
+            
             if (profile.points < pts) {
-                alert("رصيدك غير كافٍ!");
+                alert("رصيد نقاطك غير كافٍ لإتمام هذه العملية!");
+                btn.disabled = false;
+                btn.innerText = "تأكيد طلب السحب 🚀";
                 return;
             }
 
-            // تنفيذ الخصم والطلب
-            const { error: rpcError } = await supabase.rpc('increment_points', { user_id: user.id, amount: -pts });
-            
+            // 2. خصم النقاط (استخدام الدالة التي أنشأناها في SQL)
+            const { error: rpcError } = await supabaseClient.rpc('increment_points', { 
+                user_id: user.id, 
+                amount: -pts 
+            });
+
             if (!rpcError) {
-                const { error: insError } = await supabase.from('withdrawals').insert([
+                // 3. تسجيل طلب السحب في الجدول
+                await supabaseClient.from('withdrawals').insert([
                     { user_id: user.id, phone_number: phone, amount_da: da, points_cost: pts }
                 ]);
                 
-                if (!insError) {
-                    alert("✅ تم إرسال الطلب! سيتم معالجته خلال 24 ساعة.");
-                    window.location.href = "dashboard.html";
-                }
+                alert("تم إرسال طلبك بنجاح! سيتم شحن رصيدك خلال 24 ساعة كحد أقصى.");
+                window.location.href = "dashboard.html";
             } else {
-                alert("حدث خطأ: " + rpcError.message);
+                alert("حدث خطأ أثناء المعالجة، يرجى المحاولة لاحقاً.");
+                btn.disabled = false;
             }
         };
 
-        init();
+        loadProfile();
     </script>
 </body>
 </html>
