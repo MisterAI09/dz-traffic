@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سحب الأرباح | DZ-TRAFFIC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
+        <a href="dashboard.html" class="text-blue-600 font-bold flex items-center gap-1">
+            <span>➡️</span> العودة للمهام
+        </a>
+        <div class="bg-green-100 text-green-800 px-4 py-1 rounded-full font-bold">
+            رصيدك: <span id="currentPoints">0</span> 🪙
+        </div>
+    </nav>
+
+    <div class="max-w-md mx-auto p-6 mt-10">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-extrabold text-gray-900">سحب الأرباح 💸</h2>
+            <p class="text-gray-500 mt-2">حول نقاطك إلى رصيد هاتف (فليكسي)</p>
+        </div>
+        
+        <div class="grid gap-4">
+            <div onclick="selectOffer(100, 1000)" id="offer-100" class="offer-card bg-white p-5 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">100 دج</h3>
+                        <p class="text-sm text-gray-500">Mobilis / Djezzy / Ooredoo</p>
+                    </div>
+                    <div class="text-blue-600 font-black text-lg">1000 نقطة</div>
+                </div>
+            </div>
+
+            <div onclick="selectOffer(200, 2000)" id="offer-200" class="offer-card bg-white p-5 rounded-2xl shadow-sm border-2 border-transparent hover:border-blue-500 cursor-pointer transition-all">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-800">200 دج</h3>
+                        <p class="text-sm text-gray-500">Mobilis / Djezzy / Ooredoo</p>
+                    </div>
+                    <div class="text-blue-600 font-black text-lg">2000 نقطة</div>
+                </div>
+            </div>
+        </div>
+
+        <form id="withdrawForm" class="mt-10 space-y-4 hidden animate-fade-in">
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p class="text-blue-800 text-sm text-center font-medium">
+                    سيتم خصم <span id="displayPoints" class="font-bold">0</span> نقطة مقابل <span id="displayDA" class="font-bold">0</span> دج
+                </p>
+            </div>
+            
+            <input type="hidden" id="amountDA">
+            <input type="hidden" id="pointsCost">
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">رقم الهاتف المستلم:</label>
+                <input type="tel" id="userPhone" placeholder="06XXXXXXXX / 07XXXXXXXX" 
+                       class="w-full p-4 border-2 rounded-xl focus:border-blue-500 outline-none transition" required>
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black text-lg shadow-lg hover:bg-blue-700 transition transform active:scale-95">
+                تأكيد طلب السحب 🚀
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co";
+        const SUPABASE_KEY = "ضع_مفتاح_ANON_هنا"; 
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function init() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { window.location.href = "index.html"; return; }
+            
+            const { data: profile } = await supabase.from('profiles').select('points').eq('id', user.id).single();
+            document.getElementById('currentPoints').innerText = profile?.points || 0;
+        }
+
+        function selectOffer(da, points) {
+            document.querySelectorAll('.offer-card').forEach(c => c.classList.remove('border-blue-500', 'bg-blue-50'));
+            event.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+            
+            document.getElementById('amountDA').value = da;
+            document.getElementById('pointsCost').value = points;
+            document.getElementById('displayDA').innerText = da;
+            document.getElementById('displayPoints').innerText = points;
+            document.getElementById('withdrawForm').classList.remove('hidden');
+        }
+
+        document.getElementById('withdrawForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const { data: { user } } = await supabase.auth.getUser();
+            const da = parseInt(document.getElementById('amountDA').value);
+            const pts = parseInt(document.getElementById('pointsCost').value);
+            const phone = document.getElementById('userPhone').value;
+
+            // التأكد من الرصيد مرة أخرى
+            const { data: profile } = await supabase.from('profiles').select('points').eq('id', user.id).single();
+            if (profile.points < pts) {
+                alert("رصيدك غير كافٍ!");
+                return;
+            }
+
+            // تنفيذ الخصم والطلب
+            const { error: rpcError } = await supabase.rpc('increment_points', { user_id: user.id, amount: -pts });
+            
+            if (!rpcError) {
+                const { error: insError } = await supabase.from('withdrawals').insert([
+                    { user_id: user.id, phone_number: phone, amount_da: da, points_cost: pts }
+                ]);
+                
+                if (!insError) {
+                    alert("✅ تم إرسال الطلب! سيتم معالجته خلال 24 ساعة.");
+                    window.location.href = "dashboard.html";
+                }
+            } else {
+                alert("حدث خطأ: " + rpcError.message);
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>
