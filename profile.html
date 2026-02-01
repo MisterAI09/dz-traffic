@@ -7,24 +7,33 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded-xl shadow-lg w-96">
-        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">إعداد حسابك 🛠️</h2>
-        
-        <form id="profileForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium">اسم المستخدم (Username):</label>
-                <input type="text" id="username" class="w-full p-2 border rounded mt-1" placeholder="مثال: ahmed_2026" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium">الاسم الكامل:</label>
-                <input type="text" id="full_name" class="w-full p-2 border rounded mt-1" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium">رقم الهاتف (الجزائر):</label>
-                <input type="tel" id="phone" class="w-full p-2 border rounded mt-1" placeholder="06XXXXXXXX" required>
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">حفظ والذهاب للمهام 🚀</button>
-        </form>
-    </div>
+    <form id="profileForm" class="bg-white p-8 rounded-xl shadow-lg w-96 space-y-4">
+        <h2 class="text-xl font-bold text-center">أكمل بياناتك</h2>
+        <input type="text" id="username" placeholder="اسم المستخدم" class="w-full p-2 border rounded" required>
+        <input type="text" id="full_name" placeholder="الاسم الكامل" class="w-full p-2 border rounded" required>
+        <input type="tel" id="phone" placeholder="رقم الهاتف" class="w-full p-2 border rounded" required>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">حفظ والبدء 🚀</button>
+    </form>
+
+    <script>
+        const supabaseClient = supabase.createClient('https://nbioqaxgjzpyrbcwdkds.supabase.co', 'ضع_مفتاح_ANON_هنا');
+
+        document.getElementById('profileForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const { data: { user } } = await supabaseClient.auth.getUser(); // استخدام الطريقة الحديثة
+            
+            const updates = {
+                id: user.id,
+                username: document.getElementById('username').value,
+                full_name: document.getElementById('full_name').value,
+                phone: document.getElementById('phone').value,
+                updated_at: new Date()
+            };
+
+            const { error } = await supabaseClient.from('profiles').upsert(updates);
+            if (!error) window.location.href = "dashboard.html";
+            else alert(error.message);
+        };
+    </script>
 </body>
 </html>
