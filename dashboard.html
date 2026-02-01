@@ -2,111 +2,55 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة المهام | DZ-TRAFFIC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-    </style>
 </head>
 <body class="bg-gray-50">
-    <nav class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="font-bold text-xl text-blue-600">DZ-TRAFFIC</div>
-        <div class="flex items-center gap-4">
-            <div id="activeTimer" class="hidden bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-sm font-bold animate-pulse">
-                انتظر <span id="seconds">0</span>ثا... ⏳
-            </div>
-            <div class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full font-bold">
-                رصيدك: <span id="userPoints">0</span> 🪙
-            </div>
-        </div>
+    <nav class="bg-white p-4 shadow flex justify-between items-center">
+        <div class="font-bold text-blue-600">DZ-TRAFFIC</div>
+        <div>رصيدك: <span id="userPoints" class="font-bold">0</span> 🪙</div>
     </nav>
 
     <div class="max-w-4xl mx-auto p-6">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold">المهام المتاحة 🔥</h2>
-            <a href="withdraw.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700 transition">سحب الأرباح 💸</a>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">المهام المتاحة اليوم</h2>
+            <a href="withdraw.html" class="bg-green-600 text-white px-4 py-2 rounded">سحب الأرباح 💸</a>
         </div>
-        
-        <div id="adsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            </div>
+        <div id="adsContainer" class="grid gap-4"></div>
     </div>
 
     <script>
-        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
-        const SUPABASE_KEY = "ضعه_هنا_من_إعدادات_API_Keys"; // استخدم Anon Key
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        let isTaskActive = false;
+        const supabaseClient = supabase.createClient('https://nbioqaxgjzpyrbcwdkds.supabase.co', 'ضع_مفتاح_ANON_هنا');
 
         async function init() {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) { window.location.href = "index.html"; return; }
-            updateUI();
-            loadAds();
-        }
-
-        async function updateUI() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            
             const { data: profile } = await supabaseClient.from('profiles').select('points').eq('id', user.id).single();
             document.getElementById('userPoints').innerText = profile?.points || 0;
-        }
 
-        async function loadAds() {
-            const { data: ads } = await supabaseClient.from('ads').select('*').order('type', { ascending: false });
+            const { data: ads } = await supabaseClient.from('ads').select('*');
             const container = document.getElementById('adsContainer');
-            container.innerHTML = '';
-            
             ads.forEach(ad => {
-                const isVIP = ad.type === 'VIP';
                 container.innerHTML += `
-                    <div class="bg-white p-5 rounded-xl shadow-sm border-r-4 ${isVIP ? 'border-orange-500' : 'border-blue-500'} flex justify-between items-center transition-transform hover:scale-[1.02]">
-                        <div>
-                            <h3 class="font-bold text-lg">${ad.title} ${isVIP ? '⭐' : ''}</h3>
-                            <p class="text-sm text-gray-500 italic">المطلوب: ${ad.required_time} ثانية</p>
-                        </div>
-                        <button onclick="startTask('${ad.url}', ${ad.reward_points}, ${ad.required_time})" 
-                                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
-                            + ${ad.reward_points} نقطة
-                        </button>
+                    <div class="bg-white p-4 rounded shadow flex justify-between items-center border-r-4 border-blue-500">
+                        <div><h3 class="font-bold">${ad.title}</h3><p class="text-sm">الوقت: ${ad.required_time} ثانية</p></div>
+                        <button onclick="startTask('${ad.url}', ${ad.reward_points}, ${ad.required_time})" class="bg-blue-600 text-white px-4 py-2 rounded">اربح ${ad.reward_points}</button>
                     </div>`;
             });
         }
 
-        async function startTask(url, points, time) {
-            if (isTaskActive) return alert("هناك مهمة جارية!");
-            
-            isTaskActive = true;
-            const timerDiv = document.getElementById('activeTimer');
-            const secondsSpan = document.getElementById('seconds');
-            timerDiv.classList.remove('hidden');
-            
-            let timeLeft = time;
-            secondsSpan.innerText = timeLeft;
+        function startTask(url, points, time) {
+            alert(`ابقَ في الصفحة لمدة ${time} ثانية للحصول على النقاط`);
             window.open(url, '_blank');
-
-            const countdown = setInterval(async () => {
-                timeLeft--;
-                secondsSpan.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerDiv.classList.add('hidden');
-                    isTaskActive = false;
-                    
-                    const { data: { user } } = await supabaseClient.auth.getUser();
-                    const { error } = await supabaseClient.rpc('increment_points', { user_id: user.id, amount: points });
-                    
-                    if (!error) {
-                        alert(`مبروك! ربحت ${points} نقطة`);
-                        updateUI();
-                    }
-                }
-            }, 1000);
+            setTimeout(async () => {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                await supabaseClient.rpc('increment_points', { user_id: user.id, amount: points });
+                alert("مبروك! حصلت على النقاط.");
+                location.reload();
+            }, time * 1000);
         }
-
         init();
     </script>
 </body>
