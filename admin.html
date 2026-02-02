@@ -2,66 +2,100 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>لوحة المدير | DZ-TRAFFIC</title>
+    <title>لوحة التحكم للمسؤول | DZ-TRAFFIC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 </head>
 <body class="bg-gray-100 p-8">
-    <div class="max-w-5xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8">طلبات السحب المعلقة 📥</h1>
-        
-        <div class="bg-white rounded-xl shadow overflow-hidden">
-            <table class="w-full text-right text-gray-700">
-                <thead class="bg-gray-50 border-b">
-                    <tr>
-                        <th class="p-4">المستخدم</th>
-                        <th class="p-4">رقم الهاتف</th>
-                        <th class="p-4">المبلغ</th>
-                        <th class="p-4">التاريخ</th>
-                        <th class="p-4">الإجراء</th>
-                    </tr>
-                </thead>
-                <tbody id="requestsTable">
-                    </tbody>
-            </table>
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8 border-r-8 border-red-600 pr-4">لوحة تحكم المدير 🕹️</h1>
+
+        <div class="bg-white p-6 rounded-xl shadow-md mb-10">
+            <h2 class="text-xl font-bold mb-4">إضافة مهمة جديدة (إعلان)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input type="text" id="adTitle" placeholder="عنوان الإعلان" class="p-2 border rounded">
+                <input type="url" id="adUrl" placeholder="رابط الموقع" class="p-2 border rounded">
+                <input type="number" id="adPoints" placeholder="النقاط" class="p-2 border rounded">
+                <input type="number" id="adTime" placeholder="الوقت (ثانية)" class="p-2 border rounded">
+            </div>
+            <button onclick="addNewAd()" class="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">نشر الإعلان فوراً</button>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-bold mb-4">طلبات سحب الأموال المعلقة 💰</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200">
+                            <th class="p-3">رقم الهاتف</th>
+                            <th class="p-3">النقاط</th>
+                            <th class="p-3">الوسيلة</th>
+                            <th class="p-3">الحالة</th>
+                            <th class="p-3">إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawalsTable">
+                        </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        const supabase = supabase.createClient("https://nbioqaxgjzpyrbcwdkds.supabase.co", "ضع_مفتاح_ANON_هنا");
+        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
+        const SUPABASE_KEY = "ضعه_هنا_من_إعدادات_API_Keys"; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        async function loadRequests() {
-            const { data: requests, error } = await supabase
-                .from('withdrawals')
-                .select('*')
-                .eq('status', 'قيد المراجعة')
-                .order('created_at', { ascending: false });
-
-            const table = document.getElementById('requestsTable');
-            table.innerHTML = '';
-
-            requests.forEach(req => {
-                table.innerHTML += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="p-4 text-xs font-mono">${req.user_id}</td>
-                        <td class="p-4 font-bold text-blue-600">${req.phone_number}</td>
-                        <td class="p-4">${req.amount_da} دج</td>
-                        <td class="p-4 text-sm text-gray-400">${new Date(req.created_at).toLocaleString('ar-DZ')}</td>
-                        <td class="p-4">
-                            <button onclick="approve('${req.id}')" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600">تم الدفع ✅</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        async function approve(id) {
-            if(confirm("هل قمت بشحن الرصيد فعلاً؟")) {
-                const { error } = await supabase.from('withdrawals').update({ status: 'تم الدفع' }).eq('id', id);
-                if (!error) loadRequests();
+        // التحقق من أن المستخدم مسؤول
+        async function checkAdmin() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) window.location.href = "index.html";
+            
+            const { data: profile } = await _supabase.from('profiles').select('is_admin').eq('id', user.id).single();
+            if (!profile?.is_admin) {
+                alert("غير مسموح لك بالدخول هنا!");
+                window.location.href = "dashboard.html";
             }
         }
 
-        loadRequests();
+        // إضافة إعلان جديد
+        async function addNewAd() {
+            const title = document.getElementById('adTitle').value;
+            const url = document.getElementById('adUrl').value;
+            const points = document.getElementById('adPoints').value;
+            const time = document.getElementById('adTime').value;
+
+            const { error } = await _supabase.from('ads').insert([{ title, url, reward_points: points, required_time: time }]);
+            if (!error) {
+                alert("تمت إضافة الإعلان بنجاح!");
+                location.reload();
+            }
+        }
+
+        // جلب طلبات السحب
+        async function loadWithdrawals() {
+            const { data: list } = await _supabase.from('withdrawals').select('*').order('created_at', { ascending: false });
+            const table = document.getElementById('withdrawalsTable');
+            table.innerHTML = list.map(req => `
+                <tr class="border-b">
+                    <td class="p-3 font-mono">${req.phone_number}</td>
+                    <td class="p-3 text-green-600 font-bold">${req.amount_points}</td>
+                    <td class="p-3">${req.payment_method}</td>
+                    <td class="p-3"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm">${req.status}</span></td>
+                    <td class="p-3">
+                        <button onclick="completeWithdraw(${req.id})" class="text-blue-600 hover:underline">تم الدفع ✅</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function completeWithdraw(id) {
+            await _supabase.from('withdrawals').update({ status: 'completed' }).eq('id', id);
+            loadWithdrawals();
+        }
+
+        checkAdmin();
+        loadWithdrawals();
     </script>
 </body>
 </html>
