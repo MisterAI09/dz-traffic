@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DZ-TRAFFIC | تبادل الزيارات الأول في الجزائر</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
@@ -17,7 +18,7 @@
             <a href="#" class="text-gray-600 hover:text-blue-600">الأسعار</a>
         </div>
         <div id="authButtons">
-            <button onclick="loginWithGoogle()" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition">
+            <button onclick="loginWithGoogle()" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition flex items-center">
                 <i class="fab fa-google ml-2"></i> دخول عبر جوجل
             </button>
         </div>
@@ -31,8 +32,8 @@
             المنصة الجزائرية الأولى لتبادل الزيارات ودعم المنتجات المحلية. سوق لمنتجك أو اجمع النقاط لتحصل على "فليكسي" ومكافآت.
         </p>
         <div class="flex justify-center gap-4">
-            <button class="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-green-700">ابدأ الآن مجاناً</button>
-            <button class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg text-lg font-bold hover:bg-blue-50">أعلن معنا</button>
+            <button onclick="loginWithGoogle()" class="bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-green-700">ابدأ الآن مجاناً</button>
+            <a href="https://t.me/MouzaiaDelivery" target="_blank" class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg text-lg font-bold hover:bg-blue-50 flex items-center justify-center">أعلن معنا</a>
         </div>
     </section>
 
@@ -43,7 +44,7 @@
                 <div class="text-orange-500 mb-2 font-bold uppercase text-sm">توصيل 48 ولاية</div>
                 <h3 class="text-xl font-bold mb-2">مؤسسة التوصيل السريع</h3>
                 <p class="text-gray-500 mb-4 text-sm">نوفر لكم أفضل خدمة توصيل في الجزائر بأسعار تنافسية...</p>
-                <a href="#" class="block text-center bg-gray-900 text-white py-2 rounded">زيارة الموقع</a>
+                <a href="https://t.me/MouzaiaDelivery" target="_blank" class="block text-center bg-gray-900 text-white py-2 rounded">زيارة الموقع</a>
             </div>
         </div>
     </section>
@@ -55,5 +56,22 @@
         </div>
     </footer>
 
+    <script>
+        // إعدادات الربط بمشروعك
+        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
+        const SUPABASE_KEY = "ضعه_هنا_من_إعدادات_API_Keys"; // ضع ANON_KEY الخاص بك هنا
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function loginWithGoogle() {
+            const { error } = await _supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    // سيوجه المستخدم لصفحة إكمال البيانات بعد النجاح
+                    redirectTo: window.location.origin + '/profile.html' 
+                }
+            });
+            if (error) alert("خطأ في الاتصال: " + error.message);
+        }
+    </script>
 </body>
 </html>
