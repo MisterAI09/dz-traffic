@@ -8,60 +8,69 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-gray-900">
 
-    <nav class="bg-white shadow-sm py-4 px-6 flex justify-between items-center sticky top-0 z-50">
-        <div class="text-2xl font-bold text-blue-600">DZ-TRAFFIC</div>
-        <div class="space-x-4 space-x-reverse hidden md:flex">
-            <a href="#" class="text-gray-600 hover:text-blue-600">الرئيسية</a>
-            <a href="#" class="text-gray-600 hover:text-blue-600">كيف نصل؟</a>
-            <a href="#" class="text-gray-600 hover:text-blue-600">الأسعار</a>
-        </div>
+    <nav class="bg-white shadow-md py-4 px-6 flex justify-between items-center sticky top-0 z-50">
+        <div class="text-2xl font-black text-blue-600 tracking-tighter">DZ-TRAFFIC</div>
         <div id="authButtons">
-            <button onclick="loginWithGoogle()" class="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition flex items-center shadow-md">
+            <button onclick="loginWithGoogle()" class="bg-blue-600 text-white px-5 py-2 rounded-full font-bold hover:bg-blue-700 transition flex items-center shadow-lg">
                 <i class="fab fa-google ml-2"></i> دخول عبر جوجل
             </button>
         </div>
     </nav>
 
-    <section class="py-20 px-6 text-center bg-white border-b">
-        <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6">
-            حوّل زياراتك إلى <span class="text-blue-600">أرباح حقيقية</span>
+    <section class="py-24 px-6 text-center bg-gradient-to-b from-white to-gray-50 border-b">
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+            حوّل زياراتك إلى <br><span class="text-blue-600 underline">أرباح حقيقية</span>
         </h1>
-        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+        <p class="text-xl text-gray-600 mb-10 max-w-3xl mx-auto font-medium">
             المنصة الجزائرية الأولى لتبادل الزيارات ودعم المنتجات المحلية. سوق لمنتجك أو اجمع النقاط لتحصل على "فليكسي" ومكافآت.
         </p>
-        <div class="flex flex-col md:flex-row justify-center gap-4">
-            <button onclick="loginWithGoogle()" class="bg-green-600 text-white px-10 py-4 rounded-lg text-lg font-bold hover:bg-green-700 transition shadow-lg">ابدأ الآن مجاناً</button>
-            <a href="https://t.me/MouzaiaDelivery" target="_blank" class="border-2 border-blue-600 text-blue-600 px-10 py-4 rounded-lg text-lg font-bold hover:bg-blue-50 transition flex items-center justify-center">أعلن معنا</a>
+        <div class="flex flex-col sm:flex-row justify-center gap-5">
+            <button onclick="loginWithGoogle()" class="bg-green-600 text-white px-12 py-4 rounded-2xl text-xl font-black hover:bg-green-700 transition shadow-xl transform hover:scale-105">
+                ابدأ الآن مجاناً
+            </button>
+            <a href="https://t.me/MouzaiaDelivery" target="_blank" class="border-2 border-blue-600 text-blue-600 px-12 py-4 rounded-2xl text-xl font-bold hover:bg-blue-50 transition flex items-center justify-center">
+                أعلن معنا
+            </a>
         </div>
     </section>
 
-    <section class="py-16 bg-gray-50 px-6">
-        <h2 class="text-3xl font-bold text-center mb-12">إعلانات مميزة (VIP) 🔥</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 border-t-4 border-orange-500 hover:shadow-xl transition">
-                <div class="text-orange-500 mb-2 font-bold uppercase text-xs tracking-wider">توصيل 48 ولاية</div>
-                <h3 class="text-xl font-bold mb-3 text-gray-800">مؤسسة التوصيل السريع</h3>
-                <p class="text-gray-600 mb-6 text-sm leading-relaxed">نوفر لكم أفضل خدمة توصيل في الجزائر بأسعار تنافسية وضمان وصول الطرود في وقت قياسي.</p>
-                <a href="https://t.me/MouzaiaDelivery" target="_blank" class="block text-center bg-gray-900 text-white py-3 rounded-lg font-medium hover:bg-black transition">زيارة الموقع</a>
+    <section class="py-20 px-6">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12 flex items-center justify-center gap-3">
+                <span class="w-12 h-1 bg-orange-500 rounded"></span>
+                إعلانات مميزة (VIP) 🔥
+                <span class="w-12 h-1 bg-orange-500 rounded"></span>
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 border-t-8 border-orange-500 hover:shadow-2xl transition-all group">
+                    <div class="text-orange-600 mb-3 font-black text-xs tracking-widest uppercase">توصيل 48 ولاية</div>
+                    <h3 class="text-2xl font-bold mb-4 group-hover:text-blue-600 transition">مؤسسة التوصيل السريع</h3>
+                    <p class="text-gray-500 mb-8 leading-relaxed">نوفر لكم أفضل خدمة توصيل في الجزائر بأسعار تنافسية وضمان وصول الطرود في وقت قياسي.</p>
+                    <a href="https://t.me/MouzaiaDelivery" target="_blank" class="block text-center bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-blue-600 transition shadow-lg">
+                        زيارة الموقع
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 
-    <footer class="bg-gray-900 text-white py-12 text-center">
-        <div class="mb-6">
-            <div class="text-2xl font-bold mb-2">DZ-TRAFFIC</div>
-            <p class="text-gray-400 text-sm italic">من الجزائر، للجزائر 🇩🇿</p>
+    <footer class="bg-gray-900 text-white py-16 text-center">
+        <div class="mb-8">
+            <div class="text-3xl font-black text-blue-400 mb-2">DZ-TRAFFIC</div>
+            <p class="text-gray-400 font-medium italic">من الجزائر، للجزائر 🇩🇿</p>
         </div>
-        <p class="text-gray-500">© 2026 جميع الحقوق محفوظة</p>
-        <div class="mt-6 flex justify-center gap-6">
-            <a href="https://t.me/MouzaiaDelivery" class="text-blue-400 hover:text-blue-300 transition"><i class="fab fa-telegram fa-2x"></i></a>
+        <p class="text-gray-500 text-sm">© 2026 جميع الحقوق محفوظة لـ DZ-TRAFFIC</p>
+        <div class="mt-8 flex justify-center gap-8">
+            <a href="https://t.me/MouzaiaDelivery" class="text-blue-400 hover:text-white transition transform hover:scale-125">
+                <i class="fab fa-telegram fa-3x"></i>
+            </a>
         </div>
     </footer>
 
     <script>
-        // بيانات مشروعك من الصور المرفقة
+        // بيانات الربط الخاصة بك
         const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaW9xYXhnanpweXJiY3dkZHMuY28iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjgxODk0NSwiZXhwIjoyMDQ4Mzk0OTQ1fQ.6L-9K_8XvX5H_x_x_x_x_x_x"; 
         
@@ -71,13 +80,13 @@
             const { error } = await _supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    // التوجه لصفحة إكمال البيانات بعد النجاح
+                    // التوجيه لصفحة البروفايل باستخدام الرابط الحالي تلقائياً
                     redirectTo: window.location.origin + '/profile.html' 
                 }
             });
             if (error) {
                 console.error("Login Error:", error.message);
-                alert("حدث خطأ أثناء محاولة الدخول، يرجى المحاولة لاحقاً.");
+                alert("تعذر الدخول: تأكد من إعدادات الـ Redirect URIs في Supabase");
             }
         }
     </script>
