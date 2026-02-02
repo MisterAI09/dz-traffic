@@ -1,75 +1,153 @@
-// إعدادات الربط
-const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaW9xYXhnanpweXJiY3dkZHMuY28iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjgxODk0NSwiZXhwIjoyMDQ4Mzk0OTQ1fQ.6L-9K_8XvX5H_x_x_x_x_x_x"; 
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المهام | DZ-TRAFFIC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-sm p-4 flex justify-between items-center">
+        <div class="font-bold text-xl text-blue-600">DZ-TRAFFIC</div>
+        <div class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full font-bold">
+            رصيدك: <span id="userPoints">0</span> نقطة 🪙
+        </div>
+    </nav>
 
-async function loadUserData() {
-    const { data: { user } } = await _supabase.auth.getUser();
-    if (user) {
-        const { data: profile } = await _supabase.from('profiles').select('points').eq('id', user.id).single();
-        document.getElementById('userPoints').innerText = profile?.points || 0;
-    }
-}
+    <div class="max-w-4xl mx-auto p-6">
+        <h2 class="text-2xl font-bold mb-6 border-b-2 border-blue-600 pb-2">المهام المتاحة اليوم 🔥</h2>
+        <div id="adsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+            </div>
 
-async function loadAds() {
-    const { data: ads } = await _supabase.from('ads').select('*');
-    const container = document.getElementById('adsContainer');
-    container.innerHTML = ''; // تنظيف الحاوية
+        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-green-500">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">سحب الأرباح (فليكسي أو تحويل) 💳</h3>
+            <p class="text-sm text-gray-500 mb-4">* ملاحظة: الحد الأدنى للسحب هو 1000 نقطة.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input type="number" id="withdrawAmount" placeholder="عدد النقاط" class="p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                <select id="paymentMethod" class="p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="Flexy Djezzy">فليكسي جيزي</option>
+                    <option value="Flexy Mobilis">فليكسي موبيليس</option>
+                    <option value="Flexy Ooredoo">فليكسي أوريدو</option>
+                    <option value="Baridimob">بريدي موب</option>
+                </select>
+                <button onclick="requestWithdraw()" class="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition font-bold">تقديم طلب سحب</button>
+            </div>
+        </div>
+    </div>
 
-    ads.forEach(ad => {
-        container.innerHTML += `
-            <div class="bg-white p-4 rounded-lg shadow border-r-4 border-blue-500 flex justify-between items-center">
-                <div>
-                    <h3 class="font-bold text-lg">${ad.title}</h3>
-                    <p class="text-sm text-gray-500">شاهد لمدة ${ad.required_time} ثانية</p>
-                </div>
-                <button id="btn-${ad.id}" onclick="startTask('${ad.url}', ${ad.reward_points}, ${ad.required_time}, ${ad.id})" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">
-                    كسب ${ad.reward_points} نقطة
-                </button>
-            </div>`;
-    });
-}
+    <script>
+        // إعدادات الربط (بيانات مشروعك)
+        const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaW9xYXhnanpweXJiY3dkZHMuY28iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjgxODk0NSwiZXhwIjoyMDQ4Mzk0OTQ1fQ.6L-9K_8XvX5H_x_x_x_x_x_x"; 
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-function startTask(url, points, seconds, adId) {
-    const btn = document.getElementById(`btn-${adId}`);
-    btn.disabled = true;
-    btn.innerText = `انتظر ${seconds}ث...`;
-
-    // فتح الإعلان في نافذة جديدة
-    window.open(url, '_blank');
-
-    // بدء العداد التنازلي
-    let timeLeft = seconds;
-    const timer = setInterval(async () => {
-        timeLeft--;
-        btn.innerText = `انتظر ${timeLeft}ث...`;
-
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            btn.innerText = "جاري إضافة النقاط...";
-            await addPointsToUser(points);
-            btn.innerText = "تمت المهمة ✅";
-            btn.classList.replace('bg-green-500', 'bg-gray-400');
+        // 1. جلب بيانات المستخدم ونقاطه
+        async function loadUserData() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (user) {
+                const { data: profile } = await _supabase.from('profiles').select('points').eq('id', user.id).single();
+                document.getElementById('userPoints').innerText = profile?.points || 0;
+            } else {
+                window.location.href = "index.html"; // إعادة التوجيه إذا لم يسجل دخول
+            }
         }
-    }, 1000);
-}
 
-async function addPointsToUser(pointsToAdd) {
-    const { data: { user } } = await _supabase.auth.getUser();
-    if (user) {
-        // جلب النقاط الحالية أولاً
-        const { data: profile } = await _supabase.from('profiles').select('points').eq('id', user.id).single();
-        const newPoints = (profile?.points || 0) + pointsToAdd;
+        // 2. جلب الإعلانات من قاعدة البيانات
+        async function loadAds() {
+            const { data: ads, error } = await _supabase.from('ads').select('*');
+            const container = document.getElementById('adsContainer');
+            container.innerHTML = ''; 
 
-        // تحديث النقاط في قاعدة البيانات
-        const { error } = await _supabase.from('profiles').update({ points: newPoints }).eq('id', user.id);
-
-        if (!error) {
-            document.getElementById('userPoints').innerText = newPoints;
-            alert(`مبروك! ربحت ${pointsToAdd} نقطة.`);
+            if (ads) {
+                ads.forEach(ad => {
+                    container.innerHTML += `
+                        <div class="bg-white p-4 rounded-lg shadow border-r-4 border-blue-500 flex justify-between items-center transition hover:shadow-md">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800">${ad.title}</h3>
+                                <p class="text-xs text-gray-500">⏳ شاهد لمدة ${ad.required_time} ثانية</p>
+                            </div>
+                            <button id="btn-${ad.id}" onclick="startTask('${ad.url}', ${ad.reward_points}, ${ad.required_time}, ${ad.id})" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
+                                كسب ${ad.reward_points} نقطة
+                            </button>
+                        </div>`;
+                });
+            }
         }
-    }
-}
 
-loadUserData();
-loadAds();
+        // 3. نظام المهمة والعداد الزمني
+        function startTask(url, points, seconds, adId) {
+            const btn = document.getElementById(`btn-${adId}`);
+            btn.disabled = true;
+            btn.classList.replace('bg-blue-600', 'bg-gray-400');
+
+            // فتح الإعلان
+            window.open(url, '_blank');
+
+            let timeLeft = seconds;
+            const timer = setInterval(async () => {
+                timeLeft--;
+                btn.innerText = `انتظر ${timeLeft}ث...`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    btn.innerText = "إضافة النقاط...";
+                    await addPointsToUser(points);
+                    btn.innerText = "تمت المهمة ✅";
+                }
+            }, 1000);
+        }
+
+        // 4. إضافة النقاط باستخدام RPC الآمن
+        async function addPointsToUser(pointsToAdd) {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (user) {
+                const { error } = await _supabase.rpc('increment_points', { 
+                    user_id: user.id, 
+                    row_points: pointsToAdd 
+                });
+
+                if (!error) {
+                    loadUserData(); // تحديث النقاط في الواجهة
+                } else {
+                    alert("خطأ في إضافة النقاط: " + error.message);
+                }
+            }
+        }
+
+        // 5. وظيفة سحب الأرباح
+        async function requestWithdraw() {
+            const amount = parseInt(document.getElementById('withdrawAmount').value);
+            const method = document.getElementById('paymentMethod').value;
+            
+            if (!amount || amount < 1000) {
+                alert("الحد الأدنى للسحب هو 1000 نقطة!");
+                return;
+            }
+
+            const { data: { user } } = await _supabase.auth.getUser();
+            const { data: profile } = await _supabase.from('profiles').select('points').eq('id', user.id).single();
+
+            if (profile.points < amount) {
+                alert("رصيدك غير كافٍ!");
+                return;
+            }
+
+            const { error } = await _supabase.from('withdrawals').insert([
+                { user_id: user.id, amount_points: amount, payment_method: method, phone_number: "جاري الجلب من البروفايل..." }
+            ]);
+
+            if (!error) {
+                await _supabase.rpc('increment_points', { user_id: user.id, row_points: -amount });
+                alert("تم تسجيل طلب السحب بنجاح! 🚀");
+                loadUserData();
+            }
+        }
+
+        // التشغيل عند تحميل الصفحة
+        loadUserData();
+        loadAds();
+    </script>
+</body>
+</html>
