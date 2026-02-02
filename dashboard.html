@@ -12,7 +12,7 @@
 
     <div id="loader" class="fixed inset-0 bg-white z-[100] flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 mb-4"></div>
-        <p class="text-lg font-bold text-gray-600">جاري الدخول إلى لوحة التحكم...</p>
+        <p class="text-lg font-bold text-gray-600">جاري تأمين الاتصال بالحساب...</p>
     </div>
 
     <div id="mainContent" class="hidden">
@@ -31,7 +31,7 @@
         <div class="max-w-5xl mx-auto p-6">
             <div class="mb-12">
                 <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <i class="fas fa-tasks text-blue-600"></i> مهام لجمع النقاط
+                    <i class="fas fa-tasks text-blue-600"></i> المهام المتاحة
                 </h2>
                 <div id="adsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     </div>
@@ -39,28 +39,20 @@
 
             <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
                 <h3 class="text-2xl font-bold mb-6 text-green-600 flex items-center gap-2">
-                    <i class="fas fa-wallet"></i> تحويل النقاط إلى فليكسي
+                    <i class="fas fa-wallet"></i> طلب سحب فليكسي
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-4">
-                        <label class="block text-sm font-bold">عدد النقاط المراد سحبها:</label>
-                        <input type="number" id="withdrawAmount" placeholder="أقل شيء 1000 نقطة" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition">
-                        
-                        <label class="block text-sm font-bold">طريقة الدفع:</label>
+                        <input type="number" id="withdrawAmount" placeholder="عدد النقاط (مثلاً 1000)" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition">
                         <select id="paymentMethod" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition">
-                            <option value="Mobilis">موبيليس (Mobilis)</option>
-                            <option value="Djezzy">جيزي (Djezzy)</option>
-                            <option value="Ooredoo">أوريدو (Ooredoo)</option>
-                            <option value="Baridimob">بريدي موب (Baridimob)</option>
+                            <option value="Mobilis">Mobilis</option>
+                            <option value="Djezzy">Djezzy</option>
+                            <option value="Ooredoo">Ooredoo</option>
                         </select>
                     </div>
                     <div class="space-y-4">
-                        <label class="block text-sm font-bold">رقم الهاتف أو الحساب:</label>
-                        <input type="tel" id="withdrawPhone" placeholder="06xxxxxxxx" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition">
-                        
-                        <button onclick="requestWithdraw()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-green-700 transition shadow-lg mt-7">
-                            إرسال طلب السحب الآن
-                        </button>
+                        <input type="tel" id="withdrawPhone" placeholder="رقم الهاتف" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition">
+                        <button onclick="requestWithdraw()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-green-700 transition shadow-lg">إرسال الطلب</button>
                     </div>
                 </div>
             </div>
@@ -68,92 +60,62 @@
     </div>
 
     <script>
-        // إعدادات الربط بمشروعك
         const SUPABASE_URL = "https://nbioqaxgjzpyrbcwdkds.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5iaW9xYXhnanpweXJiY3dkZHMuY28iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMjgxODk0NSwiZXhwIjoyMDQ4Mzk0OTQ1fQ.6L-9K_8XvX5H_x_x_x_x_x_x"; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // التحقق من هوية المستخدم
         async function init() {
-            const { data: { user }, error } = await _supabase.auth.getUser();
-            if (!user || error) {
-                window.location.href = "index.html";
-            } else {
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                loadUserData(user.id);
-                loadAds();
-            }
+            // ننتظر ثانية واحدة للسماح للمتصفح بمعالجة التوجيه من جوجل
+            setTimeout(async () => {
+                const { data: { session }, error } = await _supabase.auth.getSession();
+                
+                if (!session || error) {
+                    // إذا لم تنجح الجلسة، نعيده للرئيسية
+                    window.location.href = "index.html"; 
+                } else {
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('mainContent').classList.remove('hidden');
+                    loadUserData(session.user.id);
+                    loadAds();
+                }
+            }, 1000);
         }
 
-        // جلب رصيد المستخدم
         async function loadUserData(userId) {
-            const { data: profile } = await _supabase.from('profiles').select('points').eq('id', userId).single();
-            document.getElementById('userPoints').innerText = profile?.points || 0;
+            const { data } = await _supabase.from('profiles').select('points').eq('id', userId).single();
+            document.getElementById('userPoints').innerText = data?.points || 0;
         }
 
-        // جلب المهام من الجدول
         async function loadAds() {
             const { data: ads } = await _supabase.from('ads').select('*');
             const container = document.getElementById('adsContainer');
             container.innerHTML = ads?.map(ad => `
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="bg-blue-100 text-blue-600 text-xs font-bold px-2 py-1 rounded">+${ad.reward_points} نقطة</span>
-                        <span class="text-gray-400 text-xs"><i class="fas fa-clock"></i> ${ad.required_time}ث</span>
-                    </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 class="font-bold text-gray-800 mb-4">${ad.title}</h3>
                     <button id="btn-${ad.id}" onclick="doTask('${ad.url}', ${ad.reward_points}, ${ad.required_time}, ${ad.id})" 
                             class="w-full bg-blue-600 text-white py-2 rounded-xl font-bold hover:bg-blue-700 transition">
-                        تنفيذ المهمة
+                        ربح ${ad.reward_points} نقطة
                     </button>
                 </div>
-            `).join('') || '<p class="text-center col-span-full text-gray-400">لا توجد مهام حالياً</p>';
+            `).join('') || 'لا توجد مهام حالياً';
         }
 
-        // منطق تنفيذ المهمة
         function doTask(url, points, time, id) {
             const btn = document.getElementById(`btn-${id}`);
             window.open(url, '_blank');
             let count = time;
-            btn.disabled = true;
             const timer = setInterval(async () => {
                 btn.innerText = `انتظر ${count}ث...`;
                 count--;
                 if (count < 0) {
                     clearInterval(timer);
-                    btn.innerText = "جاري إضافة النقاط...";
                     const { data: { user } } = await _supabase.auth.getUser();
-                    // استخدام الوظيفة التي أنشأناها في SQL
-                    const { error } = await _supabase.rpc('increment_points', { user_id: user.id, row_points: points });
-                    if (!error) {
-                        btn.innerText = "تمت المهمة ✅";
-                        btn.className = "w-full bg-green-100 text-green-600 py-2 rounded-xl font-bold cursor-default";
-                        loadUserData(user.id);
-                    }
+                    await _supabase.rpc('increment_points', { user_id: user.id, row_points: points });
+                    loadUserData(user.id);
+                    btn.innerText = "تمت ✅";
+                    btn.disabled = true;
                 }
             }, 1000);
-        }
-
-        // طلب السحب
-        async function requestWithdraw() {
-            const amount = document.getElementById('withdrawAmount').value;
-            const method = document.getElementById('paymentMethod').value;
-            const phone = document.getElementById('withdrawPhone').value;
-            const { data: { user } } = await _supabase.auth.getUser();
-
-            if (amount < 1000) return alert("الحد الأدنى للسحب هو 1000 نقطة");
-            
-            const { error } = await _supabase.from('withdrawals').insert([
-                { user_id: user.id, amount_points: amount, payment_method: method, phone_number: phone }
-            ]);
-
-            if (!error) {
-                alert("تم إرسال طلبك بنجاح! سيتم التحقق والدفع خلال 24 ساعة.");
-                location.reload();
-            } else {
-                alert("فشل الطلب: تأكد من رصيدك.");
-            }
         }
 
         async function logout() {
